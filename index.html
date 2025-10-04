@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Limelight Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #fff;
+            --secondary-color: #f8f9fa;
+            --accent-color: #8B4513; /* Brownish */
+            --text-color: #333;
+            --light-gray: #e9ecef;
+            --border-color: #dee2e6;
+            --tag-bg: #f8f0f5;
+            --tag-text: #9c27b0; /* Purple */
+            --btn-bg: #9c27b0;
+            --btn-hover: #7b1fa2;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --card-hover-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            --transition-speed: 0.3s;
+            --footer-bg: #1a1a1a;
+            --footer-text: #ccc;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--primary-color); color: var(--text-color); line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        a { color: var(--text-color); text-decoration: none; transition: color 0.3s ease; }
+        a:hover { color: var(--accent-color); }
+        
+        /* Loading Animation */
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite linear;
+            z-index: 9999;
+            display: none;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Header & Navigation */
+        .header { padding: 15px 0; border-bottom: 1px solid var(--border-color); position: relative; z-index: 100; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .site-title { text-align: left; }
+        .site-title img { max-height: 65px; width: auto; }
+        .nav-container { display: flex; justify-content: flex-end; align-items: center; }
+        .nav-menu { display: flex; list-style: none; align-items: center; }
+        .nav-item { margin: 0; position: relative; padding: 0 15px; border-left: 1px solid var(--border-color); }
+        .nav-item:first-child { border-left: none; }
+        .nav-link { 
+            display: flex; 
+            align-items: center; 
+            font-weight: 500; 
+            padding: 10px 0;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover { color: var(--accent-color); }
+        .nav-link i { margin-left: 4px; font-size: 12px; }
+
+        /* Search Bar Styles */
+        .nav-search .search-container { position: relative; display: flex; align-items: center; height: 40px; }
+        .nav-search .search-icon-btn { cursor: pointer; font-size: 16px; padding: 10px; border-radius: 50%; background-color: transparent; transition: all var(--transition-speed); }
+        .nav-search .search-container input { border: 1px solid var(--border-color); outline: none; background-color: #fff; padding: 10px 15px; border-radius: 20px; font-size: 14px; width: 0; opacity: 0; visibility: hidden; transform: translateX(10px); transition: all var(--transition-speed) ease; }
+        .nav-search .search-container.active .search-icon-btn { color: var(--btn-bg); }
+        .nav-search .search-container.active input { width: 200px; opacity: 1; visibility: visible; transform: translateX(0); }
+        #searchResultsContainer { display: none; position: absolute; top: calc(100% + 10px); right: 0; width: 350px; background: white; box-shadow: var(--card-shadow); border-radius: 6px; z-index: 1000; max-height: 400px; overflow-y: auto; }
+        .search-result-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); transition: background-color var(--transition-speed); }
+        .search-result-item:hover { background-color: var(--light-gray); }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-thumbnail { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 15px; }
+        .search-result-text { flex: 1; }
+        .search-result-title { font-weight: 500; margin-bottom: 5px; }
+        
+        /* Mobile Navigation */
+        .mobile-nav-toggle { display: none; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 1001; }
+        
+        /* Dropdown Menu for Subcategories */
+        .dropdown { position: absolute; top: 100%; left: 0; background: var(--accent-color); min-width: 220px; box-shadow: var(--card-shadow); border-radius: 6px; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all var(--transition-speed) ease; z-index: 100; border: 1px solid rgba(0,0,0,0.1); }
+        .nav-item:hover .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item { display: block; padding: 12px 20px; color: white; transition: background-color var(--transition-speed); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background-color: rgba(0,0,0,0.1); color: white; }
+
+        /* Featured Article Carousel */
+        .featured-carousel { position: relative; margin-bottom: 40px; cursor: grab; }
+        .featured-carousel:active { cursor: grabbing; }
+        .carousel-container { position: relative; height: 500px; background-color: var(--light-gray); overflow: hidden; }
+        .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.455, 0.03, 0.515, 0.955), filter 0.3s ease;
+            transform: scale(1);
+            z-index: 0;
+        }
+        .carousel-slide.active {
+            opacity: 1;
+            z-index: 1;
+            transform: scale(1.0);
+        }
+        .featured-carousel:hover .carousel-slide.active {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+        
+        .carousel-image { width: 100%; height: 100%; object-fit: cover; }
+        .carousel-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 40px 30px 30px; color: white; }
+        .category-tag { display: inline-block; background-color: var(--tag-bg); color: var(--tag-text); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+        .carousel-title { font-size: 28px; font-weight: 500; margin-bottom: 10px; font-family: 'Playfair Display', serif; }
+        .carousel-date { color: rgba(255,255,255,0.8); font-size: 14px; }
+        .carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; border-radius: 50%; }
+        .carousel-prev { left: 20px; }
+        .carousel-next { right: 20px; }
+        .carousel-indicators { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 5; }
+        .indicator { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: background-color 0.3s; }
+        .indicator.active { background-color: white; }
+
+        .carousel-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background-color: rgba(135, 206, 235, 0.2); 
+            z-index: 11;
+        }
+        .carousel-progress-bar-inner {
+            height: 100%;
+            width: 0;
+            background-color: #87CEEB; /* Sky Blue */
+        }
+        .carousel-progress-bar-inner.is-animating {
+            transition: width 5s linear;
+        }
+
+        /* Article Grid */
+        .articles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
+        .article-card { 
+            background-color: white; 
+            border-radius: 0; 
+            overflow: hidden; 
+            box-shadow: none;
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-speed) ease;
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .article-card:hover { box-shadow: var(--card-hover-shadow); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-image { width: 100%; height: 200px; object-fit: cover; transition: transform var(--transition-speed) ease; }
+        .article-card:hover .card-image { transform: scale(1.03); }
+        .card-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-category { display: inline-block; background-color: var(--tag-bg); color: var(--tag-text); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 12px; font-weight: 500; }
+        .card-title { font-size: 18px; font-weight: 500; margin-bottom: 10px; line-height: 1.3; color: var(--text-color); transition: color var(--transition-speed) ease; flex-grow: 1; }
+        .article-card:hover .card-title { color: var(--accent-color); }
+        .card-author { font-size: 14px; color: #666; display: flex; align-items: center; }
+        .card-author i { margin-right: 5px; font-size: 12px; }
+
+        /* Load More Button */
+        .load-more-container { text-align: center; margin: 40px 0; }
+        .load-more-btn { display: inline-block; padding: 12px 30px; background-color: var(--btn-bg); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: background-color var(--transition-speed); }
+        .load-more-btn:hover { background-color: var(--btn-hover); }
+
+        .page-title { text-align: center; margin-bottom: 2rem; font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--text-color); }
+        
+        /* New Footer Styles */
+        .site-footer {
+            background-color: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 60px 0 0;
+            font-size: 15px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #444;
+        }
+        .footer-about .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            color: white;
+            margin-bottom: 15px;
+        }
+        .footer-about p {
+            line-height: 1.7;
+        }
+        .footer-links h4 {
+            font-size: 18px;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .footer-links ul {
+            list-style: none;
+        }
+        .footer-links ul li {
+            margin-bottom: 12px;
+        }
+        .footer-links ul a {
+            color: var(--footer-text);
+            transition: color var(--transition-speed);
+        }
+        .footer-links ul a:hover {
+            color: white;
+        }
+        .footer-subscribe p { margin-bottom: 15px; }
+        #footerSubscribeForm { display: flex; }
+        #footerSubscribeForm input {
+            flex-grow: 1;
+            border: none;
+            padding: 12px;
+            background-color: #333;
+            color: white;
+        }
+        #footerSubscribeForm button {
+            border: none;
+            background-color: var(--btn-bg);
+            color: white;
+            padding: 0 20px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .footer-bottom {
+            padding: 20px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        @media (max-width: 992px) { 
+            .articles-grid { grid-template-columns: repeat(2, 1fr); } 
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .nav-menu { display: none; }
+            .nav-container.active .nav-menu { display: flex; }
+            .mobile-nav-toggle { display: block; }
+            .nav-container {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: white;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                display: none;
+            }
+             .nav-container.active { display: block; }
+            .nav-menu {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 0;
+            }
+             .nav-item { margin: 0; width: 100%; border-left: none; border-bottom: 1px solid var(--border-color); padding: 0;}
+             .nav-link { padding: 15px 20px; width: 100%; justify-content: flex-start; }
+             .dropdown { position: static; box-shadow: none; border: none; background: #f9f9f9; padding-left: 20px; color: var(--text-color); }
+             .dropdown-item {color: var(--text-color);}
+             .dropdown-item:hover {color: var(--accent-color);}
+             .nav-search { padding: 10px 20px; }
+             .nav-search .search-container.active input { width: calc(100vw - 100px); }
+             #searchResultsContainer { width: calc(100% - 40px); right: 20px; }
+        }
+        @media (max-width: 768px) { 
+            .site-title img { max-height: 50px; }
+            .carousel-container { height: 350px; }
+            .carousel-overlay { padding: 20px; }
+            .carousel-title { font-size: 22px; }
+            .articles-grid { grid-template-columns: 1fr; } 
+            .subscription-form { flex-direction: column; align-items: center; } 
+            .form-input { width: 100%; max-width: 300px; } 
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-bar" id="loadingBar"></div>
+    
+    <header class="header">
+        <div class="container header-content">
+            <div class="site-title">
+                <a href="index.html">
+                    <img src="https://i.ibb.co/NdsYM9dx/web-logo-123.png" alt="The Limelight Online Logo">
+                </a>
+            </div>
+            <button class="mobile-nav-toggle" aria-label="Open navigation menu"><i class="fas fa-bars"></i></button>
+            <div class="nav-container" id="navContainer">
+                <ul class="nav-menu" id="categoryNav"></ul>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="featured-carousel" id="featuredCarousel">
+            <div class="carousel-container" id="carouselContainer"></div>
+            <button class="carousel-nav carousel-prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-nav carousel-next"><i class="fas fa-chevron-right"></i></button>
+            <div class="carousel-indicators" id="carouselIndicators"></div>
+            <div class="carousel-progress-bar"><div id="progressBarInner" class="carousel-progress-bar-inner"></div></div>
+        </section>
+
+        <div id="pageTitleContainer"></div>
+
+        <section class="articles-container">
+            <div class="articles-grid" id="articlesGrid"></div>
+            <div class="load-more-container" id="loadMoreContainer" style="display: none;">
+                <button class="load-more-btn" id="loadMoreBtn">Load More Articles</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-about">
+                <h3 class="footer-logo">THE LIMELIGHT</h3>
+                <p>The Limelight is a leading online magazine, offering insightful articles, captivating stories, and in-depth analysis on a variety of topics that matter.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Categories</h4>
+                <ul id="footerCategoryNav"></ul>
+            </div>
+            <div class="footer-links">
+                <h4>Help & Support</h4>
+                <ul id="footerSupportNav"></ul>
+            </div>
+            <div class="footer-subscribe">
+                <h4>Email Newsletter</h4>
+                <p>Subscribe to receive notifications on our exclusive posts and shares.</p>
+                <form id="footerSubscribeForm">
+                    <input type="email" placeholder="Your Email" required>
+                    <button type="submit">SUBSCRIBE</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Copyright © 2025. The Limelight Online. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://whklfmxjknhucguzvpob.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indoa2xmbXhqa25odWNndXp2cG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTY5MjIsImV4cCI6MjA3Mzg3MjkyMn0.5Y2an8aYFc5wY64VmRJmnblYBPwLLs_CR9UXJ4XuzjM';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const POSTS_PER_PAGE = 12;
+        let currentPage = 1;
+        let totalPosts = 0;
+        let currentSlide = 0;
+        let featuredPosts = [];
+        let isCarouselTransitioning = false;
+        let carouselInterval;
+
+        // --- DOM Elements ---
+        const articlesGrid = document.getElementById('articlesGrid');
+        const loadingBar = document.getElementById('loadingBar');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const featuredCarousel = document.getElementById('featuredCarousel');
+        const progressBarInner = document.getElementById('progressBarInner');
+
+        function showLoading() { loadingBar.style.display = 'block'; }
+        function hideLoading() { loadingBar.style.display = 'none'; }
+        const getUrlParams = () => new URLSearchParams(window.location.search);
+        
+        // --- DATA FETCHING ---
+        async function fetchCategories() {
+            const { data: categories, error } = await supabaseClient.from('categories').select('*').is('parent_id', null).order('name');
+            if (error) { console.error('Error fetching categories:', error); return; }
+            
+            const navItems = await Promise.all(categories.map(async (category) => {
+                const { data: subcategories } = await supabaseClient.from('categories').select('*').eq('parent_id', category.id).order('name');
+                return { category, subcategories: subcategories || [] };
+            }));
+            
+            const nav = document.getElementById('categoryNav');
+            const footerNav = document.getElementById('footerCategoryNav');
+            
+            let navHtml = `<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>`;
+            let footerNavHtml = `<li><a href="index.html">Home</a></li>`;
+            
+            navItems.forEach(item => {
+                navHtml += `<li class="nav-item"><a href="index.html?categories=${item.category.slug}" class="nav-link">${item.category.name}${item.subcategories.length > 0 ? ' <i class="fas fa-chevron-down"></i>' : ''}</a>${item.subcategories.length > 0 ? `<div class="dropdown">${item.subcategories.map(sub => `<a href="index.html?categories=${sub.slug}" class="dropdown-item">${sub.name}</a>`).join('')}</div>` : ''}</li>`;
+                footerNavHtml += `<li><a href="index.html?categories=${item.category.slug}">${item.category.name}</a></li>`;
+            });
+
+            navHtml += `<li class="nav-item"><a href="authors.html" class="nav-link">Authors</a></li><li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li><li class="nav-item nav-search"><div class="search-container" id="searchContainer"><i class="fas fa-search search-icon-btn"></i><input type="text" id="searchInput" placeholder="Search..."></div><div id="searchResultsContainer"></div></li>`;
+
+            nav.innerHTML = navHtml;
+            footerNav.innerHTML = footerNavHtml;
+            setupSearch();
+        }
+
+        async function fetchFooterLinks() {
+            const { data, error } = await supabaseClient.from('footer_links').select('title, url').order('title');
+            if (error) { console.error("Error fetching footer links:", error); return; }
+            document.getElementById('footerSupportNav').innerHTML = data.map(link => `<li><a href="${link.url}" target="_blank" rel="noopener noreferrer">${link.title}</a></li>`).join('');
+        }
+
+        async function fetchFeaturedPosts() {
+            showLoading();
+            const { data, error } = await supabaseClient.from('posts').select(`*, categories(name, slug), authors(full_name)`).eq('is_featured', true).order('created_at', { ascending: false }).limit(5);
+            if (error) { console.error('Error fetching featured posts:', error); hideLoading(); return; }
+            featuredPosts = data;
+            renderCarousel();
+            if (featuredPosts.length > 1) {
+                startCarouselInterval();
+            }
+            hideLoading();
+        }
+
+        async function fetchPosts(loadMore = false) {
+            if (isCarouselTransitioning && !loadMore) return; 
+            if(!loadMore) isCarouselTransitioning = true;
+
+            if (!loadMore) { currentPage = 1; articlesGrid.innerHTML = ''; }
+            
+            showLoading();
+            const params = getUrlParams();
+            const categorySlug = params.get('categories');
+            const authorId = params.get('author');
+            const from = (currentPage - 1) * POSTS_PER_PAGE;
+            const to = from + POSTS_PER_PAGE - 1;
+
+            let query = supabaseClient.from('posts').select(`*, categories(name, slug), authors(full_name)`, { count: 'exact' });
+            
+            if (categorySlug) {
+                const { data: categoryData } = await supabaseClient.from('categories').select('id').eq('slug', categorySlug).single();
+                if (categoryData) query = query.eq('category_id', categoryData.id);
+            }
+            if (authorId) query = query.eq('author_id', authorId);
+            
+            query = query.order('created_at', { ascending: false }).range(from, to);
+            
+            const { data, error, count } = await query;
+            
+            if (error) { console.error('Error fetching posts:', error); hideLoading(); if(!loadMore) isCarouselTransitioning = false; return; }
+            
+            totalPosts = count;
+            renderPosts(data, loadMore);
+            updateLoadMoreButton();
+            hideLoading();
+            if(!loadMore) isCarouselTransitioning = false;
+        }
+
+        // --- RENDERING ---
+        function renderCarousel() {
+            const container = document.getElementById('carouselContainer');
+            const indicators = document.getElementById('carouselIndicators');
+            if (!featuredPosts || featuredPosts.length === 0) return;
+
+            container.innerHTML = featuredPosts.map((post) => `<div class="carousel-slide"><a href="article.html?post=${post.slug}" class="carousel-image-link"><img src="${post.image_url}" alt="${post.title}" class="carousel-image"></a><div class="carousel-overlay"><a href="index.html?categories=${post.categories.slug}" class="category-tag">${post.categories.name}</a><h2 class="carousel-title"><a href="article.html?post=${post.slug}" style="color: white; text-decoration: none;">${post.title}</a></h2><p class="carousel-date">${new Date(post.created_at).toLocaleDateString()}</p></div></div>`).join('');
+            
+            if (featuredPosts.length > 1) {
+                indicators.innerHTML = featuredPosts.map((_, index) => `<div class="indicator" data-slide-to="${index}"></div>`).join('');
+                document.querySelector('.carousel-slide').classList.add('active');
+                document.querySelector('.indicator').classList.add('active');
+            } else {
+                 document.querySelector('.carousel-slide').classList.add('active');
+            }
+        }
+
+        function renderPosts(posts, append = false) {
+            if (!append) articlesGrid.innerHTML = '';
+            posts.forEach((post, index) => {
+                const card = document.createElement('a');
+                card.href = `article.html?post=${post.slug}`;
+                card.className = 'article-card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `<img src="${post.image_url || 'https://via.placeholder.com/400x200'}" alt="${post.title}" class="card-image" loading="lazy"><div class="card-content"><span class="card-category">${post.categories.name}</span><h3 class="card-title">${post.title}</h3><p class="card-author"><i class="fas fa-user"></i> ${post.authors.full_name}</p></div>`;
+                articlesGrid.appendChild(card);
+            });
+        }
+        
+        function updateLoadMoreButton() {
+            const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+            if (currentPage < totalPages && totalPosts > POSTS_PER_PAGE) {
+                loadMoreContainer.style.display = 'block';
+                loadMoreBtn.onclick = () => { currentPage++; fetchPosts(true); };
+            } else {
+                loadMoreContainer.style.display = 'none';
+            }
+        }
+        
+        async function initPage() {
+            showLoading();
+            setupMobileNav();
+            const params = getUrlParams();
+            const categorySlug = params.get('categories');
+            const authorId = params.get('author');
+            
+            document.getElementById('pageTitleContainer').innerHTML = '';
+            featuredCarousel.style.display = 'block';
+
+            await fetchCategories();
+            await fetchFooterLinks();
+
+            if (categorySlug || authorId) {
+                featuredCarousel.style.display = 'none';
+                let title = '';
+                if(categorySlug) {
+                    const {data} = await supabaseClient.from('categories').select('name').eq('slug', categorySlug).single();
+                    title = data?.name || 'Category';
+                } else {
+                     const {data} = await supabaseClient.from('authors').select('full_name').eq('id', authorId).single();
+                    title = `Posts by ${data?.full_name || 'Author'}`;
+                }
+                document.getElementById('pageTitleContainer').innerHTML = `<h2 class="page-title">${title}</h2>`;
+            } else {
+                await fetchFeaturedPosts();
+            }
+            await fetchPosts();
+            hideLoading();
+        }
+
+        // --- CAROUSEL LOGIC ---
+        function showSlide(nextIndex, isManual = false) {
+            if (isCarouselTransitioning || featuredPosts.length <= 1) return;
+            isCarouselTransitioning = true;
+
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            const currentIndex = currentSlide;
+
+            if (nextIndex >= slides.length) nextIndex = 0;
+            if (nextIndex < 0) nextIndex = slides.length - 1;
+            
+            const currentSlideEl = slides[currentIndex];
+            const nextSlideEl = slides[nextIndex];
+            
+            currentSlideEl.classList.remove('active');
+            nextSlideEl.classList.add('active');
+
+            indicators.forEach(ind => ind.classList.remove('active'));
+            if(indicators[nextIndex]) indicators[nextIndex].classList.add('active');
+
+            currentSlide = nextIndex;
+            
+            // Allow new transitions after a short delay to prevent spamming
+            setTimeout(() => { isCarouselTransitioning = false; }, 200);
+
+            if (isManual) {
+                startCarouselInterval();
+            }
+        }
+
+        function restartProgressBar() {
+            progressBarInner.classList.remove('is-animating');
+            void progressBarInner.offsetWidth;
+            progressBarInner.classList.add('is-animating');
+            progressBarInner.style.width = '100%';
+        }
+        
+        function resetProgressBar() {
+            progressBarInner.classList.remove('is-animating');
+            progressBarInner.style.width = '0%';
+        }
+
+        function startCarouselInterval() {
+            stopCarouselInterval();
+            if (featuredPosts.length > 1) {
+                resetProgressBar();
+                setTimeout(() => restartProgressBar(), 50);
+                carouselInterval = setInterval(() => {
+                    showSlide(currentSlide + 1);
+                    restartProgressBar();
+                }, 5000);
+            }
+        }
+
+        function stopCarouselInterval() {
+            clearInterval(carouselInterval);
+        }
+
+        // --- SEARCH LOGIC ---
+        let searchTimeout;
+        function setupSearch() {
+            const searchContainer = document.getElementById('searchContainer');
+            const searchIcon = searchContainer.querySelector('.search-icon-btn');
+            const searchInput = searchContainer.querySelector('#searchInput');
+            const resultsContainer = document.getElementById('searchResultsContainer');
+
+            searchIcon.addEventListener('click', (e) => { e.stopPropagation(); searchContainer.classList.toggle('active'); if (searchContainer.classList.contains('active')) searchInput.focus(); });
+            searchInput.addEventListener('input', () => {
+                const term = searchInput.value;
+                clearTimeout(searchTimeout);
+                if (term.length < 2) { resultsContainer.innerHTML = ''; resultsContainer.style.display = 'none'; return; }
+                resultsContainer.style.display = 'block';
+                resultsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Searching...</p>';
+                searchTimeout = setTimeout(async () => {
+                    const { data } = await supabaseClient.from('posts').select('id, title, slug, image_url').ilike('title', `%${term}%`).limit(5);
+                    if (data && data.length > 0) {
+                        resultsContainer.innerHTML = data.map(p => `<a href="article.html?post=${p.slug}" class="search-result-item"><img src="${p.image_url || 'https://via.placeholder.com/60'}" alt="${p.title}" class="search-result-thumbnail"><div class="search-result-text"><div class="search-result-title">${p.title}</div></div></a>`).join('');
+                    } else {
+                        resultsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">No results found.</p>';
+                    }
+                }, 300);
+            });
+            document.addEventListener('click', (e) => { if (!searchContainer.contains(e.target)) { searchContainer.classList.remove('active'); resultsContainer.style.display = 'none'; } });
+        }
+        
+        // --- MOBILE NAV LOGIC ---
+        function setupMobileNav() {
+            const toggleBtn = document.querySelector('.mobile-nav-toggle');
+            const navContainer = document.getElementById('navContainer');
+            toggleBtn.addEventListener('click', () => navContainer.classList.toggle('active'));
+        }
+
+        // --- SWIPE LOGIC ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                showSlide(diff > 0 ? currentSlide + 1 : currentSlide - 1, true);
+            }
+        }
+        
+        featuredCarousel.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            const activeSlide = document.querySelector('.carousel-slide.active');
+            if(activeSlide) activeSlide.style.opacity = '0.8';
+        }, { passive: true });
+
+        featuredCarousel.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].clientX;
+            const activeSlide = document.querySelector('.carousel-slide.active');
+            if(activeSlide) activeSlide.style.opacity = '1';
+            handleSwipe();
+        });
+
+        // --- EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', initPage);
+        featuredCarousel.addEventListener('click', (e) => {
+            if (e.target.closest('.carousel-prev')) showSlide(currentSlide - 1, true);
+            if (e.target.closest('.carousel-next')) showSlide(currentSlide + 1, true);
+            if (e.target.matches('.indicator')) showSlide(parseInt(e.target.dataset.slideTo), true);
+        });
+
+    </script>
+</body>
+</html>
+
